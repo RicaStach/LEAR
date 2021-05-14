@@ -40,3 +40,8 @@ The paper which introduces the LEAR procedure:
 ```
 
 If you are using WordNet (Miller, 1995) constraints, please cite these papers. If you are using BabelNet constraints, please cite (Navigli and Ponzetto, 2012).
+
+
+### Prerequisites
+Install nvidia CUDA
+https://developer.nvidia.com/cuda-downloads?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exe_local
