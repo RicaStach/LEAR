@@ -43,5 +43,16 @@ If you are using WordNet (Miller, 1995) constraints, please cite these papers. I
 
 
 ### Prerequisites
-Install nvidia CUDA
-https://developer.nvidia.com/cuda-downloads?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exe_local
+#### How to prepare the environment for running the program with Windows 10
+To make tensorflow runnable on Windows without an nvidia card, some extra prerequisites are necessary:
+
+1. Install nvidia CUDA from here: https://developer.nvidia.com/cuda-downloads?target_os=Windows&target_arch=x86_64&target_version=10&target_type=exe_local
+2. Add the path of the Cuda Tookit/bin folder to hte PATH variable. 
+3. Install Anaconda for Windows. In order to do this follow the instructions here: https://docs.anaconda.com/anaconda/install/windows/
+4. In Anaconda create a new Python environment and install Tensorflow with DirectML package. Open the Anaconda console and follow the instructions described here: https://docs.microsoft.com/en-us/windows/win32/direct3d12/gpu-tensorflow-wsl#install-the-tensorflow-with-directml-package
+5. Install the for the import needed packages in the Anaconda console using pip as well.
+6. To be able to run the program in the PyCharm IDE, the Anaconda environment needs to be added as Python Interpreter:
+    File->Settings->View All->Add->Add Existing; Choose the Folder where the lately created Anaconda environment was stored (e.q. *\AppData\Local\Programs\Anaconda\envs\directml)  
+
+
+

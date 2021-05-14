@@ -10,7 +10,7 @@ from numpy.linalg import norm
 from numpy import dot
 import codecs
 from scipy.stats import spearmanr
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import scipy
 import configparser
 
@@ -24,6 +24,7 @@ from tensorflow.python.ops import gen_linalg_ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops.gen_linalg_ops import *
 
+tf.disable_v2_behavior()
 
 class ExperimentRun:
     """
@@ -114,13 +115,15 @@ class ExperimentRun:
         # finally, load the experiment hyperparameters:
         self.load_experiment_hyperparameters()
 
-        self.embedding_size = list(random.choice(distributional_vectors.values())).shape[0]
+        self.embedding_size = random.choice(list(distributional_vectors.values())).shape[0]
+        #self.embedding_size = list(self.embedding_size_nolist)[0]
         self.vocabulary_size = len(self.vocabulary)
 
         # Next, prepare the matrix of initial vectors and initialise the model. 
 
         numpy_embedding = numpy.zeros((self.vocabulary_size, self.embedding_size), dtype="float32")
-        for idx in range(0, self.vocabulary_size):
+
+        for idx in list(range(0, self.vocabulary_size)):
             numpy_embedding[idx, :] = distributional_vectors[self.inverted_index[idx]]
 
         # load the handles so that we can load current state of vectors from the Tensorflow embedding. 
@@ -135,15 +138,15 @@ class ExperimentRun:
 
         init = tf.global_variables_initializer()
 
-        self.sess = tf.Session()
+        self.sess = tf.Session(config=tf.ConfigProto(intra_op_parallelism_threads=10))
         self.sess.run(init)
 
-    def initialise_model(self, numpy_embedding):
+    def initialise_model(self, numpy_embedding): # R.Stach: numpy_embedding = distributional_vectors
         """
         Initialises the TensorFlow Attract-Repel model.
         """
         self.attract_examples_mono = tf.placeholder(tf.int32,
-                                                    [None, 2])  # each element is the position of word vector.
+                                                    [None, 2])  # each element is the position of word vector. # R. Stach: legt eine zweispaltige tabelle für die Vektoren der Wörter an.
         self.attract_examples_cl = tf.placeholder(tf.int32, [None, 2])
         self.repel_examples = tf.placeholder(tf.int32, [None, 2])  # each element is again the position of word vector.
 
@@ -166,9 +169,9 @@ class ExperimentRun:
 
         # placeholders for example pairs...
         attract_examples_left_mono = tf.nn.l2_normalize(
-            tf.nn.embedding_lookup(self.W_dynamic, self.attract_examples_mono[:, 0]), 1)
+            tf.nn.embedding_lookup(self.W_dynamic, self.attract_examples_mono[:, 0]), 1) # R.Stach: Selektion der ersten spalte aus attract_examples_mono
         attract_examples_right_mono = tf.nn.l2_normalize(
-            tf.nn.embedding_lookup(self.W_dynamic, self.attract_examples_mono[:, 1]), 1)
+            tf.nn.embedding_lookup(self.W_dynamic, self.attract_examples_mono[:, 1]), 1) # R.Stach: Selektion der zweiten spalte aus attract_examples_mono
 
         # and their respective negative examples:
         negative_examples_attract_left_mono = tf.nn.l2_normalize(
@@ -418,7 +421,7 @@ class ExperimentRun:
         else:
             default_value = 0.0  # for antonyms, we want the opposite value from the synonym one. Cosine Distance is [0,2].
 
-        for i in range(len(square_distance_list)):
+        for i in list(range(len(square_distance_list))):
 
             square_distance_list[
                 i, i] = default_value  # NIKOLA TODO: is this wrong, does this mean that we always find the element itself as most distant?
@@ -439,7 +442,7 @@ class ExperimentRun:
 
         negative_examples = []
 
-        for idx in range(len(list_minibatch)):
+        for idx in list(range(len(list_minibatch))):
             negative_example_left = list_of_indices[negative_example_indices[2 * idx]]
             negative_example_right = list_of_indices[negative_example_indices[2 * idx + 1]]
 
@@ -494,9 +497,9 @@ class ExperimentRun:
         last_time = time.time()
 
         if self.log_scores_over_time:
-            fwrite_simlex = open("results/simlex_scores.txt", "w")
-            fwrite_wordsim = open("results/wordsim_scores.txt", "w")
-            fwrite_hyperlex = open("results/hyperlex_scores.txt", "w")
+            fwrite_simlex = open("..\\results\\simlex_scores.txt", "w")
+            fwrite_wordsim = open("..\\results\\wordsim_scores.txt", "w")
+            fwrite_hyperlex = open("..\\results\\hyperlex_scores.txt", "w")
 
         while current_iteration < self.max_iter:
 
@@ -505,9 +508,9 @@ class ExperimentRun:
             synonym_counter_mono = 0
             synonym_counter_cl = 0
 
-            order_of_synonyms_asym = range(0, self.syn_count_mono)
-            order_of_synonyms_sym = range(0, self.syn_count_cl)
-            order_of_antonyms = range(0, self.ant_count)
+            order_of_synonyms_asym = list(range(0, self.syn_count_mono))
+            order_of_synonyms_sym = list(range(0, self.syn_count_cl))
+            order_of_antonyms = list(range(0, self.ant_count))
 
             random.shuffle(order_of_synonyms_asym)
             random.shuffle(order_of_synonyms_sym)
@@ -529,7 +532,7 @@ class ExperimentRun:
                       "seconds. \n")
                 last_time = time.time()
 
-            for batch_index in range(0, batches_per_epoch):
+            for batch_index in list(range(0, batches_per_epoch)):
 
                 # we can Log SimLex / WordSim scores
                 if self.log_scores_over_time and (batch_index % (batches_per_epoch / 5) == 0):
@@ -537,8 +540,8 @@ class ExperimentRun:
                     list_of_simlex.append(simlex_score)
                     list_of_wordsim.append(wordsim_score)
 
-                    print >> fwrite_simlex, len(list_of_simlex) + 1, simlex_score
-                    print >> fwrite_wordsim, len(list_of_simlex) + 1, wordsim_score
+                    print(len(list_of_simlex) + 1, simlex_score, file=fwrite_simlex)
+                    print(len(list_of_simlex) + 1, wordsim_score, file=fwrite_wordsim)
 
                 syn_or_ant_batch = list_of_batch_types[batch_index]
 
@@ -546,8 +549,8 @@ class ExperimentRun:
                     # do one synonymy batch:
 
                     synonymy_examples_cl = [self.synonyms_sym[order_of_synonyms_sym[x]] for x in
-                                            range(synonym_counter_cl * self.batch_size,
-                                                  (synonym_counter_cl + 1) * self.batch_size)]
+                                            list(range(synonym_counter_cl * self.batch_size,
+                                                  (synonym_counter_cl + 1) * self.batch_size))]
                     current_negatives = self.extract_negative_examples(synonymy_examples_cl, attract_batch=0)
 
                     self.sess.run([self.attract_cost_step_cl],
@@ -561,8 +564,8 @@ class ExperimentRun:
                     # do one synonymy batch:
 
                     synonymy_examples_mono = [self.synonyms_asym[order_of_synonyms_asym[x]] for x in
-                                              range(synonym_counter_mono * self.batch_size,
-                                                    (synonym_counter_mono + 1) * self.batch_size)]
+                                              list(range(synonym_counter_mono * self.batch_size,
+                                                    (synonym_counter_mono + 1) * self.batch_size))]
                     current_negatives = self.extract_negative_examples(synonymy_examples_mono, attract_batch=1)
 
                     self.sess.run([self.attract_cost_step_mono],
@@ -575,8 +578,8 @@ class ExperimentRun:
                 else:
 
                     antonymy_examples = [self.antonyms[order_of_antonyms[x]] for x in
-                                         range(antonym_counter * self.batch_size,
-                                               (antonym_counter + 1) * self.batch_size)]
+                                         list(range(antonym_counter * self.batch_size,
+                                               (antonym_counter + 1) * self.batch_size))]
                     current_negatives = self.extract_negative_examples(antonymy_examples, attract_batch=-1)
 
                     self.sess.run([self.repel_cost_step], feed_dict={self.repel_examples: antonymy_examples,
@@ -597,7 +600,7 @@ class ExperimentRun:
 
         [current_vectors] = self.sess.run([self.W_dynamic])
         self.word_vectors = {}
-        for idx in range(0, self.vocabulary_size):
+        for idx in list(range(0, self.vocabulary_size)):
             # self.word_vectors[self.inverted_index[idx]] = normalise_vector(current_vectors[idx, :])
             self.word_vectors[self.inverted_index[idx]] = current_vectors[idx, :]
 
@@ -683,7 +686,7 @@ def print_word_vectors(word_vectors, write_path):
     f_write = codecs.open(write_path, 'w', 'utf-8')
 
     for key in word_vectors:
-        print >> f_write, key, " ".join(map(str, numpy.round(word_vectors[key], decimals=6)))
+        print(key, " ".join(map(str, numpy.round(word_vectors[key], decimals=6))), file=f_write)
 
     print("Printed", len(word_vectors), "word vectors to:", write_path)
 
@@ -959,7 +962,7 @@ def run_experiment(config_filepath):
 
     simlex_scores(current_experiment.word_vectors, current_experiment.distance_metric, current_experiment.order), "\n"
 
-    os.system("mkdir -p results")
+    #os.system("mkdir -p results")
 
     print_word_vectors(current_experiment.word_vectors, current_experiment.final_vectors_filepath)
 
