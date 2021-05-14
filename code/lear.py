@@ -12,7 +12,7 @@ import codecs
 from scipy.stats import spearmanr
 import tensorflow as tf
 import scipy
-import ConfigParser 
+import configparser
 
 from scipy.spatial.distance import pdist
 from scipy.spatial.distance import squareform
@@ -38,7 +38,7 @@ class ExperimentRun:
         collections of linguistic constraints (one pair per line), as well as the  
         hyperparameters of the Attract-Repel procedure (as detailed in the TACL paper).
         """
-        self.config = ConfigParser.RawConfigParser()
+        self.config = configparser.RawConfigParser()
         try:
             self.config.read(config_filepath)
         except:
@@ -658,13 +658,14 @@ def simlex_analysis(word_vectors, language="english", source="simlex", add_prefi
     """
     pair_list = []
     if source == "simlex":
-        fread_simlex=codecs.open("evaluation/simlex-" + language + ".txt", 'r', 'utf-8')
+        fread_simlex = codecs.open("..\\evaluation\\simlex-" + language + ".txt", 'r', 'utf-8')
     elif source == "simlex-old":
-        fread_simlex=codecs.open("evaluation/simlex-english-old.txt", 'r', 'utf-8')
+        fread_simlex = codecs.open("..\\evaluation\\simlex-english-old.txt", 'r', 'utf-8')
     elif source == "simverb":
-        fread_simlex=codecs.open("evaluation/simverb.txt", 'r', 'utf-8')
+        fread_simlex = codecs.open("..\\evaluation\\simverb.txt", 'r', 'utf-8')
     elif source == "wordsim":
-        fread_simlex=codecs.open("evaluation/ws-353/wordsim353-" + language + ".txt", 'r', 'utf-8') # specify english, english-rel, etc.
+        fread_simlex = codecs.open("..\\evaluation\\ws-353/wordsim353-" + language + ".txt", 'r',
+                                   'utf-8')  # specify english, english-rel, etc.
 
     # needed for prefixes if we are adding these.
     lp_map = {}
@@ -733,11 +734,11 @@ def hyperlex_analysis(word_vectors, language="english", source="hyperlex", dista
     """
     pair_list = []
     if source == "hyperlex":
-        fread_simlex=codecs.open("evaluation/hyperlex.txt", 'r', 'utf-8')
+        fread_simlex = codecs.open("..\\evaluation\\/hyperlex.txt", 'r', 'utf-8')
     elif source == "hyperlex-nouns":
-        fread_simlex=codecs.open("evaluation/hyperlex-nouns.txt", 'r', 'utf-8')
+        fread_simlex = codecs.open("..\\evaluation\\hyperlex-nouns.txt", 'r', 'utf-8')
     elif source == "hyperlex-test":
-        fread_simlex=codecs.open("evaluation/hyperlex_test.txt", 'r', 'utf-8')
+        fread_simlex = codecs.open("..\\evaluation\\hyperlex_test.txt", 'r', 'utf-8')
     else:
         "Error with HyperLex!"
 
